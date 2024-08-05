@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>도서 관리 시스템</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: linear-gradient(to right, #ffebcd, #ffb6c1, #ffc0cb, #ffe4e1, #ffefd5);
+            color: #333;
+        }
+        h1, h2 {
+            color: #4b0082;
+            text-align: center;
+        }
+        form {
+            margin-bottom: 20px;
+            background: #fffafa;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        label, input, textarea, select, button {
+            display: block;
+            margin: 5px 0;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #32cd32;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #228b22;
+        }
+        #searchResults div, #reviews div {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            background: #f8f8ff;
+            border-radius: 5px;
+        }
+        .hidden {
+            display: none;
+        }
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .nav-button {
+            padding: 10px;
+            background-color: #87cefa;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin: 5px;
+            flex: 1;
+            text-align: center;
+            border-radius: 5px;
+        }
+        .nav-button:hover {
+            background-color: #4682b4;
+        }
+        .emoji {
+            font-size: 2em;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .message {
+            text-align: center;
+            margin: 10px 0;
+            color: #d9534f;
+        }
+        .section {
+            display: none;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            background-color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <h1>📚 도서 관리 시스템 📚</h1>
+
+    <div class="emoji">👋 🌸 🐱</div>
+
+    <div class="nav-buttons">
+        <button class="nav-button" onclick="showSection('register')">회원가입</button>
+        <button class="nav-button" onclick="showSection('login')">로그인</button>
+        <button class="nav-button" onclick="showSection('bookSearch')">도서 검색</button>
+        <button class="nav-button" onclick="showSection('borrowedBooks')">대출한 도서</button>
+        <button class="nav-button" onclick="showSection('bookReview')">리뷰 작성</button>
+        <button class="nav-button" onclick="showSection('readingStats')">독서 통계</button>
+    </div>
+
+    <!-- 회원가입 폼 -->
+    <div id="register" class="section">
+        <h2>회원가입</h2>
+        <form id="registerForm">
+            <label for="username">아이디:</label>
+            <input type="text" id="username" name="username" required><br>
+            <label for="password">비밀번호:</label>
+            <input type="password" id="password" name="password" required><br>
+            <button type="submit">회원가입</button>
+        </form>
+        <div id="registerMessage" class="message hidden"></div>
+    </div>
+
+    <!-- 로그인 폼 -->
+    <div id="login" class="section">
+        <h2>로그인</h2>
+        <form id="loginForm">
+            <label for="loginUsername">아이디:</label>
+            <input type="text" id="loginUsername" name="username" required><br>
+            <label for="loginPassword">비밀번호:</label>
+            <input type="password" id="loginPassword" name="password" required><br>
+            <button type="submit">로그인</button>
+        </form>
+        <div id="loginMessage" class="message hidden"></div>
+    </div>
+
+    <!-- 도서 검색 -->
+    <div id="bookSearch" class="section">
+        <h2>도서 검색</h2>
+        <form id="searchForm">
+            <input type="text" id="searchQuery" name="query" placeholder="제목, 저자 등으로 검색" required>
+            <button type="submit">검색</button>
+        </form>
+        <div id="searchResults"></div>
+    </div>
+
+    <!-- 대출 도서 목록 -->
+    <div id="borrowedBooks" class="section">
+        <h2>대출한 도서</h2>
+        <div id="borrowedBooksMessage" class="message hidden"></div>
+        <ul id="borrowedBooksList">
+            <!-- 대출한 도서 목록 -->
+        </ul>
+    </div>
+
+    <!-- 리뷰 작성 -->
+    <div id="bookReview" class="section">
+        <h2>리뷰 작성</h2>
+        <form id="reviewForm">
+            <label for="bookTitle">도서 제목:</label>
+            <input type="text" id="bookTitle" name="bookTitle" required><br>
+            <label for="review">리뷰:</label>
+            <textarea id="review" name="review" required></textarea><br>
+            <label for="rating">평점:</label>
+            <select id="rating" name="rating" required>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select><br>
+            <button type="submit">리뷰 제출</button>
+        </form>
+        <div id="reviews"></div>
+    </div>
+
+    <!-- 독서 통계 -->
+    <div id="readingStats" class="section">
+        <h2>독서 통계</h2>
+        <p>총 읽은 도서: <span id="totalBooksRead">0</span></p>
+        <p>가장 많이 읽은 장르: <span id="mostReadGenre">N/A</span></p>
+    </div>
+
+    <script>
+        let users = [];
+        let loggedInUser = null;
+        let totalBooksRead = 0;
+        let genreCounts = {};
+        let borrowedBooks = [];
+
+        const books = [
+            { title: '미움받을 용기', author: '기시미 이치로, 고가 후미타케', publisher: '다이아몬드 사', year: 2023, genre: '픽션, 정신분석학' },
+            { title: '불편한 편의점', author: '김호연', publisher: '나무옆의자', year: 2021, genre: '드라마,코미디,휴먼' },
+            { title: '침묵의 봄', author: '레이첼 카슨', publisher: '에코리브르', year: 2011, genre: '환경' },
+            { title: '최유진 자서전', author: '최유진', publisher: '최유진', year: 2024, genre: '자서전' },
+            { title: '노인과 바다', author: '어니스트 헤밍웨이', publisher: '민음사', year: 1952, genre: '소설' },
+            { title: '1984', author: '조지 오웰', publisher: '열린책들', year: 1949, genre: '디스토피아' },
+            { title: '사피엔스', author: '유발 하라리', publisher: '김영사', year: 2011, genre: '역사' },
+            { title: '총, 균, 쇠', author: '재레드 다이아몬드', publisher: '문학동네', year: 1997, genre: '인류학' },
+            { title: '반지의 제왕', author: 'J.R.R. 톨킨', publisher: '황금가지', year: 1954, genre: '판타지' },
+            { title: '해리 포터와 마법사의 돌', author: 'J.K. 롤링', publisher: '문학동네', year: 1997, genre: '판타지' },
+        ];
+
+        function showSection(sectionId) {
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => section.style.display = 'none');
+            document.getElementById(sectionId).style.display = 'block';
+        }
+
+        function displayMessage(elementId, message, isError = false) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.style.color = isError ? '#d9534f' : '#28a745';
+            element.classList.remove('hidden');
+        }
+
+        function getDaysDiff(date1, date2) {
+            const diffTime = Math.abs(date2 - date1);
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        }
+
+        function isBookOverdue(borrowedDate) {
+            const today = new Date();
+            const diffDays = getDaysDiff(new Date(borrowedDate), today);
+            return diffDays > 14;
+        }
+
+        function updateBorrowedBooksList() {
+            const borrowedBooksList = document.getElementById('borrowedBooksList');
+            borrowedBooksList.innerHTML = '';
+            borrowedBooks.filter(book => book.user === loggedInUser.username).forEach(book => {
+                const listItem = document.createElement('li');
+                const borrowedDate = new Date(book.borrowedDate);
+                const returnDate = new Date(borrowedDate.getTime() + 14 * 24 * 60 * 60 * 1000);
+                const today = new Date();
+                const diffDays = getDaysDiff(today, returnDate);
+                const dDay = diffDays >= 0 ? `D-${diffDays}` : `연체 ${-diffDays}일`;
+
+                listItem.textContent = `${book.title} (반납 예정일: ${returnDate.toLocaleDateString()}, ${dDay})`;
+                const returnButton = document.createElement('button');
+                returnButton.textContent = '반납';
+                returnButton.onclick = () => returnBook(book.title);
+                listItem.appendChild(returnButton);
+                borrowedBooksList.appendChild(listItem);
+            });
+        }
+
+        function borrowBook(bookTitle) {
+            if (!loggedInUser) {
+                displayMessage('borrowedBooksMessage', '먼저 로그인 해주세요.', true);
+                showSection('login');
+                return;
+            }
+
+            const alreadyBorrowed = borrowedBooks.some(book => book.user === loggedInUser.username && book.title === bookTitle);
+            if (alreadyBorrowed) {
+                alert('이 도서는 이미 대출하셨습니다.');
+                return;
+            }
+
+            const overdueBooks = borrowedBooks.filter(book => book.user === loggedInUser.username && isBookOverdue(book.borrowedDate));
+            if (overdueBooks.length > 0) {
+                displayMessage('borrowedBooksMessage', '연체된 도서가 있어 대출이 불가능합니다. 연체된 도서를 반납해 주세요.', true);
+                return;
+            }
+
+            const userBorrowedBooks = borrowedBooks.filter(book => book.user === loggedInUser.username);
+            if (userBorrowedBooks.length >= 4) {
+                alert('도서는 최대 4권까지만 대출할 수 있습니다.');
+                return;
+            }
+
+            console.log(`도서 대출: ${bookTitle}`);
+            alert(`대출 신청: ${bookTitle}`);
+            const borrowedDate = new Date();
+            borrowedBooks.push({
+                title: bookTitle,
+                user: loggedInUser.username,
+                borrowedDate: borrowedDate
+            });
+
+            // Update borrowed books list and stats
+            updateBorrowedBooksList();
+            const book = books.find(book => book.title === bookTitle);
+            updateStats(bookTitle, book ? book.genre : '소설');
+        }
+
+        function returnBook(bookTitle) {
+            if (!loggedInUser) {
+                displayMessage('returnBooksMessage', '먼저 로그인 해주세요.', true);
+                showSection('login');
+                return;
+            }
+            console.log(`도서 반납: ${bookTitle}`);
+            alert(`반납 신청: ${bookTitle}`);
+
+            // 대출한 도서 목록에서 제거
+            borrowedBooks = borrowedBooks.filter(book => !(book.title === bookTitle && book.user === loggedInUser.username));
+
+            // Update borrowed books list
+            updateBorrowedBooksList();
+        }
+
+        document.getElementById('registerForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            users.push({ username, password });
+            console.log(`회원가입: ${username}`);
+            displayMessage('registerMessage', '회원가입에 성공하였습니다!');
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const user = users.find(user => user.username === username && user.password === password);
+            if (user) {
+                loggedInUser = user;
+                console.log(`로그인 성공: ${username}`);
+                displayMessage('loginMessage', '로그인에 성공하였습니다!');
+                updateBorrowedBooksList();
+            } else {
+                console.log(`로그인 실패: ${username}`);
+                displayMessage('loginMessage', '로그인에 실패하였습니다. 아이디 또는 비밀번호를 확인하세요.', true);
+            }
+        });
+
+        document.getElementById('searchForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const query = document.getElementById('searchQuery').value.toLowerCase();
+            const results = books.filter(book => 
+                book.title.toLowerCase().includes(query) || 
+                book.author.toLowerCase().includes(query)
+            );
+            const searchResultsDiv = document.getElementById('searchResults');
+            searchResultsDiv.innerHTML = '';
+            if (results.length > 0) {
+                results.forEach(book => {
+                    const bookDiv = document.createElement('div');
+                    bookDiv.innerHTML = `
+                        <h3>${book.title}</h3>
+                        <p>저자: ${book.author}</p>
+                        <p>출판사: ${book.publisher}</p>
+                        <p>출판 연도: ${book.year}</p>
+                        <p>장르: ${book.genre}</p>
+                        <button onclick="borrowBook('${book.title}')">대출</button>
+                    `;
+                    searchResultsDiv.appendChild(bookDiv);
+                });
+            } else {
+                searchResultsDiv.innerHTML = '<p>검색 결과가 없습니다.</p>';
+            }
+        });
+
+        function updateStats(bookTitle, genre) {
+            totalBooksRead++;
+            document.getElementById('totalBooksRead').textContent = totalBooksRead;
+            if (genre in genreCounts) {
+                genreCounts[genre]++;
+            } else {
+                genreCounts[genre] = 1;
+            }
+            const mostReadGenre = Object.keys(genreCounts).reduce((a, b) => genreCounts[a] > genreCounts[b] ? a : b);
+            document.getElementById('mostReadGenre').textContent = mostReadGenre;
+        }
+
+        document.getElementById('reviewForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const bookTitle = document.getElementById('bookTitle').value;
+            const review = document.getElementById('review').value;
+            const rating = document.getElementById('rating').value;
+            if (!loggedInUser) {
+                alert('리뷰를 작성하려면 먼저 로그인 해주세요.');
+                showSection('login');
+                return;
+            }
+            console.log(`리뷰 작성: ${bookTitle}, 리뷰: ${review}, 평점: ${rating}`);
+            const reviewsDiv = document.getElementById('reviews');
+            reviewsDiv.innerHTML += `
+                <div data-title="${bookTitle}">
+                    <h3>${bookTitle}</h3>
+                    <p class="reviewText">리뷰: ${review}</p>
+                    <p>평점: ${rating}점</p>
+                    <p>작성자: ${loggedInUser.username}</p>
+                    <button onclick="editReview('${bookTitle}')">수정</button>
+                    <button onclick="deleteReview('${bookTitle}')">삭제</button>
+                </div>
+            `;
+        });
+
+        function editReview(bookTitle) {
+            const reviewDiv = document.querySelector(`#reviews div[data-title="${bookTitle}"]`);
+            const reviewText = reviewDiv.querySelector('.reviewText').textContent;
+            const newReview = prompt('리뷰 수정:', reviewText);
+            if (newReview !== null) {
+                reviewDiv.querySelector('.reviewText').textContent = newReview;
+                console.log(`리뷰 수정: ${bookTitle}, 새 리뷰: ${newReview}`);
+            }
+        }
+
+        function deleteReview(bookTitle) {
+            const reviewDiv = document.querySelector(`#reviews div[data-title="${bookTitle}"]`);
+            reviewDiv.remove();
+            console.log(`리뷰 삭제: ${bookTitle}`);
+        }
+    </script>
+</body>
+</html>
